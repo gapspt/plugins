@@ -69,6 +69,8 @@ static NSString *const PLATFORM_CHANNEL = @"plugins.flutter.io/share";
         return;
       }
 
+      UIViewController *controller = [UIApplication sharedApplication].keyWindow.rootViewController;
+
       NSNumber *originX = arguments[@"originX"];
       NSNumber *originY = arguments[@"originY"];
       NSNumber *originWidth = arguments[@"originWidth"];
@@ -78,11 +80,14 @@ static NSString *const PLATFORM_CHANNEL = @"plugins.flutter.io/share";
       if (originX != nil && originY != nil && originWidth != nil && originHeight != nil) {
         originRect = CGRectMake([originX doubleValue], [originY doubleValue],
                                 [originWidth doubleValue], [originHeight doubleValue]);
+      } else {
+        originRect = CGRectMake(controller.view.bounds.size.width / 2.0,
+            controller.view.bounds.size.height / 2.0, 0, 0);
       }
 
       [self share:shareText
                  subject:shareSubject
-          withController:[UIApplication sharedApplication].keyWindow.rootViewController
+          withController:controller
                 atSource:originRect];
       result(nil);
     } else {
@@ -99,8 +104,9 @@ static NSString *const PLATFORM_CHANNEL = @"plugins.flutter.io/share";
   UIActivityViewController *activityViewController =
       [[UIActivityViewController alloc] initWithActivityItems:@[ data ] applicationActivities:nil];
   activityViewController.popoverPresentationController.sourceView = controller.view;
-  if (!CGRectIsEmpty(origin)) {
-    activityViewController.popoverPresentationController.sourceRect = origin;
+  activityViewController.popoverPresentationController.sourceRect = origin;
+  if (CGRectIsEmpty(origin)) {
+    activityViewController.popoverPresentationController.permittedArrowDirections = 0;
   }
   [controller presentViewController:activityViewController animated:YES completion:nil];
 }
